@@ -245,10 +245,10 @@ width: 300px;
 
 <h4>Inspirational images</h4>
 <p>Attach photos of designs that you would like me to use.</p>
-<p style="font-size:11px;margin-top:0;">Max 2 images, only .jpg files allowed, max size 10mb.</p>
+<p style="font-size:11px;margin-top:0;">Max 2 images, only PDF, JPG, GIF and PNG files allowed, max size 10mb.</p>
 <input type="file" id="media_file" name="media_file" style="display:none"/>
 <input type="text" name="media_file_field" style="display:none"/>
-<input type="text" name="media_file_names" id="media_file_names" style="display:none"/>
+<p id="media_file_names" style="display:none"></p>
 <label for="media_file">
 <a class="button" id="media_file_button">Select image</a>
 </label>
@@ -296,13 +296,12 @@ jQuery('#getquote').click(function(){
 		cookies.push(jQuery(this).prop('id'));
 	});
 	var cookie_string = JSON.stringify(cookies);
-
 	var cookielist='';			
 	for (var ne=0; ne<=(cookies.length)-1; ne++){
 		cookielist+='<li>'+cookies[ne]+'</li>';
 	}
-	cookies_string = cookielist;
-	photos_string = jQuery('#media_file_names').val();
+	var cookies_string = cookielist;
+	var photos_string = jQuery('#media_file_names').text();
 
 	ajaxformsendmail(
 		ajaxcontactname.value,
@@ -413,6 +412,29 @@ function media_file_upload(){
 	if( ! empty( $upload[ 'error' ] ) ) {
 		wp_die( $upload[ 'error' ] );
 	}
+	
+	$errors = array();
+	$maxsize = 10485760;
+    $acceptable = array(
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg',
+        'image/gif',
+        'image/png'
+    );
+	
+	if(($_FILES[ 'media_file' ]['size'] >= $maxsize) || ($_FILES[ 'media_file' ]["size"] == 0)) {
+        $errors[] = 'File too large, must be less than 10 megabytes.';
+    }
+    if((!in_array($_FILES[ 'media_file' ]['type'], $acceptable)) && (!empty($_FILES[ 'media_file' ]["type"]))) {
+        $errors[] = 'Invalid file type, only PDF, JPG, GIF and PNG types are accepted.';
+    }
+	if(count($errors) != 0) {
+        foreach($errors as $error) {
+            echo '<script>alert("'.$error.'");</script>';
+        }
+        die();
+    }
 
 	// it is time to add our uploaded image into WordPress media library
 	$attachment_id = wp_insert_attachment(
