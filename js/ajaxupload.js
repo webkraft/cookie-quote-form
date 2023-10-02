@@ -1,15 +1,27 @@
-var file_names=[];
+var files_arr=[];
 jQuery( function( $ ) {
 	
 	$image_count = 0;
 	$( '#media_file' ).change( function() {
 		
-		//hide submit button
 		$( '#getquote' ).css('display','none');
 		
 		if ( ! this.files.length ) {
 			$( '#media_filelist' ).empty();
 		} else {
+			
+			var file_size = $('#media_file')[0].files[0].size;
+			console.log('file_size: ' + file_size);
+			if(file_size > 10485760) {
+				alert("File size is greater than 10MB");
+				return false;
+			}
+			
+			var fileExtension = ['jpeg', 'jpg', 'png', 'gif', 'pdf'];
+			if ($.inArray($('#media_file').val().split('.').pop().toLowerCase(), fileExtension) == -1) {
+				alert("Only '.jpeg','.jpg', '.png', '.gif', '.bmp' formats are allowed.");
+				return false;
+			}
 			
 			$image_count ++;
 			if ($image_count == 2){
@@ -29,15 +41,13 @@ jQuery( function( $ ) {
 			formData.append( 'cutomer_name', $("#ajaxcontactname").val() );
 			
 			var uploadfile = file.name;
-			file_names.push(uploadfile);
+			files_arr.push(uploadfile);
 			
 			var fileslist = '';			
-			for (var ne=0; ne<=(file_names.length)-1; ne++){
-				fileslist += file_names[ne]+'<br>';
+			for (var ne=0; ne<=(files_arr.length)-1; ne++){
+				fileslist += '<li>'+files_arr[ne]+'</li>';
 			}
-			files_string = JSON.stringify(file_names);
-			
-			$('#media_file_names').val(files_string);
+			$('#media_file_names').html(fileslist);			
 
 			$.ajax({
 				xhr: function() {
@@ -45,8 +55,7 @@ jQuery( function( $ ) {
 					xhr.upload.addEventListener("progress", function(evt) {
 						if (evt.lengthComputable) {
 							var percentComplete = (evt.loaded / evt.total) * 100;
-							//console.log(percentComplete + '%');
-							console.log(percentComplete.toFixed(1));
+							//console.log(percentComplete.toFixed(1));
 							$('#media_response').html('Please wait, uploading...');
 							$("#progress-bar").width(percentComplete.toFixed(1) + '%');
 							//round(0.5, 0)
